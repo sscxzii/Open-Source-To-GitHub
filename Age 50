@@ -1,0 +1,10 @@
+local function setEquippedPetAgeTo50()
+    local character = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+    for _, child in pairs(character:GetChildren()) do
+        if child:IsA("Tool") and child.Name:match("%[Age%s%d+%]") then
+            local newName = child.Name:gsub("%[Age%s%d+%]", "[Age 50]")
+            child.Name = newName
+            break
+        end
+    end
+end
