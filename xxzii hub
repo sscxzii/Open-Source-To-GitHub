@@ -287,7 +287,7 @@ local openExtraBtn = createButton("📜 more scripts here", 170)
 -- Extra Panel
 local extraPanel = Instance.new("Frame")
 extraPanel.Name = "ExtraPanel"
-extraPanel.Size = UDim2.new(0, 250, 0, 230)
+extraPanel.Size = UDim2.new(0, 250, 0, 270)
 extraPanel.Position = UDim2.new(0.5, -15, 0.5, -90)
 extraPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 extraPanel.BackgroundTransparency = 0.3
