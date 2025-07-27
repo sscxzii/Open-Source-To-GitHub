@@ -1,10 +1,168 @@
-local function setEquippedPetAgeTo50()
-    local character = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
-    for _, child in pairs(character:GetChildren()) do
-        if child:IsA("Tool") and child.Name:match("%[Age%s%d+%]") then
-            local newName = child.Name:gsub("%[Age%s%d+%]", "[Age 50]")
-            child.Name = newName
-            break
-        end
-    end
+-- Place this LocalScript in StarterPlayerScripts or StarterGui
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- GUI Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FakeAgeChanger"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 230, 0, 140)
+frame.Position = UDim2.new(0.35, 0, 0.4, 0)
+frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.BackgroundTransparency = 0.35
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12)
+uiCorner.Parent = frame
+
+local uiStroke = Instance.new("UIStroke")
+uiStroke.Color = Color3.fromRGB(200, 200, 200)
+uiStroke.Thickness = 1.5
+uiStroke.Transparency = 0.4
+uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+uiStroke.Parent = frame
+
+-- Made by xxzii Label (inside frame)
+local credit = Instance.new("TextLabel")
+credit.Text = "Made by xxzii"
+credit.Font = Enum.Font.GothamSemibold
+credit.TextSize = 13
+credit.TextColor3 = Color3.fromRGB(180, 180, 180)
+credit.BackgroundTransparency = 1
+credit.Size = UDim2.new(1, 0, 0, 16)
+credit.Position = UDim2.new(0, 0, 0, 4)
+credit.Parent = frame
+
+-- Main Title
+local title = Instance.new("TextLabel")
+title.Text = "🕜 Auto Age 50 Pets"
+title.Font = Enum.Font.FredokaOne
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(230, 230, 230)
+title.BackgroundTransparency = 1
+title.Size = UDim2.new(1, 0, 0, 28)
+title.Position = UDim2.new(0, 0, 0, 20)
+title.Parent = frame
+
+-- Pet Info
+local petInfo = Instance.new("TextLabel")
+petInfo.Text = "Equipped Pet: [None]"
+petInfo.Font = Enum.Font.Gotham
+petInfo.TextSize = 14
+petInfo.TextColor3 = Color3.fromRGB(220, 220, 180)
+petInfo.BackgroundTransparency = 1
+petInfo.Position = UDim2.new(0, 0, 0, 48)
+petInfo.Size = UDim2.new(1, 0, 0, 22)
+petInfo.TextScaled = false
+petInfo.TextWrapped = true
+petInfo.Parent = frame
+
+-- Sounds
+local function createSound(id, parent)
+	local sound = Instance.new("Sound")
+	sound.SoundId = "rbxassetid://" .. id
+	sound.Volume = 1
+	sound.PlayOnRemove = false
+	sound.Parent = parent
+	return sound
 end
+
+local tickSound = createSound(9118823107, frame)
+local successSound = createSound(12222242, frame)
+local errorSound = createSound(138199151, frame)
+
+-- Styled Button
+local function createStyledButton(text, yPos, color)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.9, 0, 0, 36)
+	btn.Position = UDim2.new(0.05, 0, 0, yPos)
+	btn.BackgroundColor3 = color
+	btn.BackgroundTransparency = 0.15
+	btn.Text = text
+	btn.Font = Enum.Font.FredokaOne
+	btn.TextSize = 16
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.AutoButtonColor = false
+
+	local uic = Instance.new("UICorner")
+	uic.CornerRadius = UDim.new(0, 6)
+	uic.Parent = btn
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(0, 0, 0)
+	stroke.Thickness = 1.2
+	stroke.Transparency = 0.3
+	stroke.Parent = btn
+
+	btn.Parent = frame
+	return btn
+end
+
+-- Create Button
+local button = createStyledButton("Set Age to 50", 75, Color3.fromRGB(90, 90, 90))
+
+-- Tool detection
+local function getEquippedPetTool()
+	character = player.Character or player.CharacterAdded:Wait()
+	for _, child in pairs(character:GetChildren()) do
+		if child:IsA("Tool") and child.Name:match("%[Age%s%d+%]") then
+			return child
+		end
+	end
+	return nil
+end
+
+-- GUI update
+local function updateGUI()
+	local tool = getEquippedPetTool()
+	if tool then
+		petInfo.Text = "Equipped Pet: " .. tool.Name
+	else
+		petInfo.Text = "Equipped Pet: [None]"
+	end
+end
+
+-- Button click logic
+local isBusy = false
+button.MouseButton1Click:Connect(function()
+	if isBusy then return end
+	isBusy = true
+
+	local tool = getEquippedPetTool()
+	if tool then
+		for i = 30, 1, -1 do
+			button.Text = "Changing Age in " .. i .. "..."
+			tickSound:Play()
+			wait(1)
+		end
+
+		local newName = tool.Name:gsub("%[Age%s%d+%]", "[Age 50]")
+		tool.Name = newName
+		petInfo.Text = "Equipped Pet: " .. tool.Name
+		successSound:Play()
+	else
+		button.Text = "No Pet Equipped!"
+		errorSound:Play()
+		wait(2)
+	end
+
+	button.Text = "Set Age to 50"
+	isBusy = false
+end)
+
+-- Constant GUI refresh
+task.spawn(function()
+	while true do
+		updateGUI()
+		task.wait(1)
+	end
+end)
