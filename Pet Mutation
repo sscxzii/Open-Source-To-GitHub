@@ -1,0 +1,175 @@
+-- Pet Mutation Machine with Modern UI, ESP, Timer, Reroll, and Sounds
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local Debris = game:GetService("Debris")
+
+local player = Players.LocalPlayer
+
+-- Mutation List
+local mutations = {
+	{ name = "Shiny", color = Color3.fromRGB(200, 200, 200), sound = "rbxassetid://9126755272" },
+	{ name = "Inverted", color = Color3.fromRGB(150, 150, 255), sound = "rbxassetid://9126755272" },
+	{ name = "Frozen", color = Color3.fromRGB(100, 200, 255), sound = "rbxassetid://9126755272" },
+	{ name = "Windy", color = Color3.fromRGB(200, 255, 255), sound = "rbxassetid://9126755272" },
+	{ name = "Golden", color = Color3.fromRGB(255, 215, 0), sound = "rbxassetid://138090596" },
+	{ name = "Mega", color = Color3.fromRGB(255, 100, 100), sound = "rbxassetid://9126755272" },
+	{ name = "Tiny", color = Color3.fromRGB(255, 170, 255), sound = "rbxassetid://9126755272" },
+	{ name = "Tranquil", color = Color3.fromRGB(180, 255, 180), sound = "rbxassetid://9126755272" },
+	{ name = "IronSkin", color = Color3.fromRGB(180, 180, 180), sound = "rbxassetid://9126755272" },
+	{ name = "Radiant", color = Color3.fromRGB(255, 255, 200), sound = "rbxassetid://9126755272" },
+	{ name = "Rainbow", color = Color3.fromRGB(255, 0, 255), sound = "rbxassetid://138090596" },
+	{ name = "Shocked", color = Color3.fromRGB(255, 255, 255), sound = "rbxassetid://138090596" },
+	{ name = "Ascended", color = Color3.fromRGB(200, 100, 255), sound = "rbxassetid://138090596" },
+	{ name = "Corrupted", color = Color3.fromRGB(80, 0, 80), sound = "rbxassetid://9126755272" }
+}
+
+-- UI Setup
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "MutationUI"
+screenGui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Size = UDim2.new(0, 280, 0, 200)
+mainFrame.Position = UDim2.new(0.5, -140, 0.5, -100)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BackgroundTransparency = 0.3
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+-- Corner
+local uicorner = Instance.new("UICorner", mainFrame)
+uicorner.CornerRadius = UDim.new(0, 14)
+
+-- Drop shadow
+local shadow = Instance.new("ImageLabel", mainFrame)
+shadow.Size = UDim2.new(1, 30, 1, 30)
+shadow.Position = UDim2.new(0, -15, 0, -15)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageTransparency = 0.6
+shadow.ZIndex = -1
+
+-- Title
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.Text = "✨ Pet Mutation Machine"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.FredokaOne
+title.TextScaled = true
+
+-- Reroll Button
+local rerollBtn = Instance.new("TextButton", mainFrame)
+rerollBtn.Size = UDim2.new(1, -40, 0, 45)
+rerollBtn.Position = UDim2.new(0, 20, 0, 50)
+rerollBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+rerollBtn.Text = "🔁 Reroll All Mutations"
+rerollBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+rerollBtn.Font = Enum.Font.GothamBold
+rerollBtn.TextScaled = true
+rerollBtn.BorderSizePixel = 0
+Instance.new("UICorner", rerollBtn)
+
+-- Hover animation
+rerollBtn.MouseEnter:Connect(function()
+	TweenService:Create(rerollBtn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(100, 100, 100) }):Play()
+end)
+rerollBtn.MouseLeave:Connect(function()
+	TweenService:Create(rerollBtn, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(60, 60, 60) }):Play()
+end)
+
+-- Timer Label
+local timerLabel = Instance.new("TextLabel", mainFrame)
+timerLabel.Size = UDim2.new(1, -40, 0, 25)
+timerLabel.Position = UDim2.new(0, 20, 0, 105)
+timerLabel.BackgroundTransparency = 1
+timerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+timerLabel.Font = Enum.Font.Gotham
+timerLabel.Text = ""
+timerLabel.TextScaled = true
+
+-- Credits (Bottom Right)
+local credits = Instance.new("TextLabel", mainFrame)
+credits.Size = UDim2.new(0, 130, 0, 20)
+credits.Position = UDim2.new(1, -135, 1, -25)
+credits.BackgroundTransparency = 1
+credits.Text = "Made by xxzii"
+credits.TextColor3 = Color3.fromRGB(160, 160, 160)
+credits.Font = Enum.Font.GothamSemibold
+credits.TextScaled = true
+credits.TextXAlignment = Enum.TextXAlignment.Right
+
+-- Cooldown System
+local cooldown = 15
+local lastReroll = 0
+
+local function playSound(soundId)
+	local sound = Instance.new("Sound", SoundService)
+	sound.SoundId = soundId
+	sound.Volume = 1
+	sound:Play()
+	Debris:AddItem(sound, 2)
+end
+
+local function startCooldownTimer()
+	local remaining = cooldown
+	while remaining > 0 do
+		timerLabel.Text = "⏳ Wait " .. remaining .. "s"
+		wait(1)
+		remaining -= 1
+	end
+	timerLabel.Text = ""
+end
+
+-- Apply mutation
+local function applyMutationTo(machine)
+	local mutation = mutations[math.random(1, #mutations)]
+	local espGui = machine:FindFirstChild("ESPLabel")
+	if not espGui then return end
+	local label = espGui:FindFirstChildWhichIsA("TextLabel")
+	if not label then return end
+	label.Text = "🧬 " .. mutation.name
+	label.TextColor3 = mutation.color
+	label.TextStrokeTransparency = 0.6
+	label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	playSound(mutation.sound)
+end
+
+-- Reroll Logic
+rerollBtn.MouseButton1Click:Connect(function()
+	if tick() - lastReroll < cooldown then return end
+	lastReroll = tick()
+	startCooldownTimer()
+
+	for _, obj in pairs(Workspace:GetDescendants()) do
+		if obj:IsA("Model") and obj.Name:lower():find("mutation") then
+			applyMutationTo(obj)
+		end
+	end
+end)
+
+-- ESP Setup
+for _, obj in pairs(Workspace:GetDescendants()) do
+	if obj:IsA("Model") and obj.Name:lower():find("mutation") and not obj:FindFirstChild("ESPLabel") then
+		local espGui = Instance.new("BillboardGui", obj)
+		espGui.Name = "ESPLabel"
+		espGui.Size = UDim2.new(0, 200, 0, 40)
+		espGui.StudsOffset = Vector3.new(0, 3, 0)
+		espGui.AlwaysOnTop = true
+
+		local label = Instance.new("TextLabel", espGui)
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.Font = Enum.Font.GothamBlack
+		label.TextScaled = true
+
+		local mutation = mutations[math.random(1, #mutations)]
+		label.Text = "🧬 " .. mutation.name
+		label.TextColor3 = mutation.color
+	end
+end
