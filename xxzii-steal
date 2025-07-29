@@ -1,0 +1,296 @@
+local player = game.Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+
+-- Create loading screen
+local loadingScreen = Instance.new("ScreenGui", PlayerGui)
+loadingScreen.Name = "XXZiiLoading"
+loadingScreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+loadingScreen.IgnoreGuiInset = true
+loadingScreen.ResetOnSpawn = false
+
+local loadingFrame = Instance.new("Frame")
+loadingFrame.Size = UDim2.new(1, 0, 1, 0)
+loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+loadingFrame.BackgroundTransparency = 0
+loadingFrame.Parent = loadingScreen
+
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(0, 400, 0, 50)
+loadingText.Position = UDim2.new(0.5, -200, 0.5, -25)
+loadingText.BackgroundTransparency = 1
+loadingText.Text = "XXZII HUB V1"
+loadingText.Font = Enum.Font.GothamBold
+loadingText.TextSize = 40
+loadingText.TextColor3 = Color3.fromRGB(255, 0, 0)
+loadingText.Parent = loadingFrame
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
+
+-- ScreenGui
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.Name = "StealerUI"
+screenGui.ResetOnSpawn = false
+
+-- Main Frame (increased height to fit all boxes)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 400, 0, 250)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.BackgroundTransparency = 1 -- Start hidden
+mainFrame.Parent = screenGui
+
+-- Red Glowing Border
+local border = Instance.new("UIStroke")
+border.Color = Color3.fromRGB(255, 0, 0)
+border.Thickness = 2
+border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+border.Parent = mainFrame
+
+-- Corner
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0, 200, 0, 25)
+title.Position = UDim2.new(0, 10, 0, 5)
+title.BackgroundTransparency = 1
+title.Text = "⚡ Xxzii Stealer"
+title.TextColor3 = Color3.fromRGB(255, 0, 0)
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.TextTransparency = 1
+title.Parent = mainFrame
+
+-- Exit Button
+local exitBtn = Instance.new("TextButton")
+exitBtn.Size = UDim2.new(0, 25, 0, 25)
+exitBtn.Position = UDim2.new(1, -30, 0, 5)
+exitBtn.Text = "X"
+exitBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+exitBtn.TextSize = 16
+exitBtn.BackgroundTransparency = 1
+exitBtn.Font = Enum.Font.GothamBold
+exitBtn.TextTransparency = 1
+exitBtn.Parent = mainFrame
+exitBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+-- Minimize Button
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 25, 0, 25)
+minBtn.Position = UDim2.new(1, -60, 0, 5)
+minBtn.Text = "-"
+minBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+minBtn.TextSize = 20
+minBtn.BackgroundTransparency = 1
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextTransparency = 1
+minBtn.Parent = mainFrame
+
+-- Logo Button
+local logo = Instance.new("TextButton")
+logo.Size = UDim2.new(0, 50, 0, 50)
+logo.Position = UDim2.new(0.5, -25, 0.5, -25)
+logo.Text = "⚡"
+logo.TextSize = 24
+logo.TextColor3 = Color3.fromRGB(255, 0, 0)
+logo.BackgroundColor3 = Color3.fromRGB(30, 0, 0)
+logo.Visible = false
+logo.ZIndex = 2
+logo.Parent = screenGui
+logo.Active = true
+logo.Draggable = true
+
+local logoCorner = Instance.new("UICorner")
+logoCorner.CornerRadius = UDim.new(1, 0)
+logoCorner.Parent = logo
+
+local glow = Instance.new("UIStroke")
+glow.Thickness = 2
+glow.Color = Color3.fromRGB(255, 0, 0)
+glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+glow.Parent = logo
+
+minBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	logo.Visible = true
+end)
+logo.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	logo.Visible = false
+end)
+
+-- InputBox
+local inputBox = Instance.new("TextBox")
+inputBox.Size = UDim2.new(0.9, 0, 0, 30)
+inputBox.Position = UDim2.new(0.05, 0, 0.25, 0)
+inputBox.PlaceholderText = "💀 USER HERE"
+inputBox.Text = ""
+inputBox.TextSize = 16
+inputBox.Font = Enum.Font.Gotham
+inputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+inputBox.BackgroundTransparency = 1
+inputBox.TextTransparency = 1
+inputBox.Parent = mainFrame
+
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 6)
+inputCorner.Parent = inputBox
+
+-- Name of Item Box
+local itemBox = Instance.new("TextBox")
+itemBox.Size = UDim2.new(0.9, 0, 0, 30)
+itemBox.Position = UDim2.new(0.05, 0, 0.45, 0)
+itemBox.PlaceholderText = "🐶 NAME OF PETS"
+itemBox.Text = ""
+itemBox.TextSize = 16
+itemBox.Font = Enum.Font.Gotham
+itemBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+itemBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+itemBox.BackgroundTransparency = 1
+itemBox.TextTransparency = 1
+itemBox.Parent = mainFrame
+
+local itemCorner = Instance.new("UICorner")
+itemCorner.CornerRadius = UDim.new(0, 6)
+itemCorner.Parent = itemBox
+
+-- Extra Box 1 (left)
+local extraBox1 = Instance.new("TextBox")
+extraBox1.Size = UDim2.new(0.45, -5, 0, 30)
+extraBox1.Position = UDim2.new(0.05, 0, 0.65, 0)
+extraBox1.PlaceholderText = "🍄 FRUITS"
+extraBox1.Text = ""
+extraBox1.TextSize = 16
+extraBox1.Font = Enum.Font.Gotham
+extraBox1.TextColor3 = Color3.fromRGB(255, 255, 255)
+extraBox1.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+extraBox1.BackgroundTransparency = 1
+extraBox1.TextTransparency = 1
+extraBox1.Parent = mainFrame
+
+local extraCorner1 = Instance.new("UICorner")
+extraCorner1.CornerRadius = UDim.new(0, 6)
+extraCorner1.Parent = extraBox1
+
+-- Extra Box 2 (right)
+local extraBox2 = Instance.new("TextBox")
+extraBox2.Size = UDim2.new(0.45, -5, 0, 30)
+extraBox2.Position = UDim2.new(0.5, 5, 0.65, 0)
+extraBox2.PlaceholderText = "🍄 MIN - MAX VALUE"
+extraBox2.Text = ""
+extraBox2.TextSize = 16
+extraBox2.Font = Enum.Font.Gotham
+extraBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
+extraBox2.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+extraBox2.BackgroundTransparency = 1
+extraBox2.TextTransparency = 1
+extraBox2.Parent = mainFrame
+
+local extraCorner2 = Instance.new("UICorner")
+extraCorner2.CornerRadius = UDim.new(0, 6)
+extraCorner2.Parent = extraBox2
+
+-- STEAL Button
+local stealBtn = Instance.new("TextButton")
+stealBtn.Size = UDim2.new(0.45, -5, 0, 30)
+stealBtn.Position = UDim2.new(0.05, 0, 0.85, 0)
+stealBtn.Text = "STEAL"
+stealBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+stealBtn.TextSize = 16
+stealBtn.Font = Enum.Font.GothamBold
+stealBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+stealBtn.BackgroundTransparency = 1
+stealBtn.TextTransparency = 1
+stealBtn.Parent = mainFrame
+
+local stealCorner = Instance.new("UICorner")
+stealCorner.CornerRadius = UDim.new(0, 6)
+stealCorner.Parent = stealBtn
+
+-- BYPASS Button
+local bypassBtn = Instance.new("TextButton")
+bypassBtn.Size = UDim2.new(0.45, -5, 0, 30)
+bypassBtn.Position = UDim2.new(0.5, 5, 0.85, 0)
+bypassBtn.Text = "BYPASS"
+bypassBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+bypassBtn.TextSize = 16
+bypassBtn.Font = Enum.Font.GothamBold
+bypassBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+bypassBtn.BackgroundTransparency = 1
+bypassBtn.TextTransparency = 1
+bypassBtn.Parent = mainFrame
+
+local bypassCorner = Instance.new("UICorner")
+bypassCorner.CornerRadius = UDim.new(0, 6)
+bypassCorner.Parent = bypassBtn
+
+-- Cooldown function
+local function runCooldown(button, originalText)
+	local seconds = 30
+	button.Text = "Wait ("..seconds..")"
+	button.AutoButtonColor = false
+	button.Active = false
+	while seconds > 0 do
+		wait(1)
+		seconds -= 1
+		button.Text = "Wait ("..seconds..")"
+	end
+	button.Text = originalText
+	button.Active = true
+	button.AutoButtonColor = true
+end
+
+-- STEAL logic
+stealBtn.MouseButton1Click:Connect(function()
+	stealBtn.Text = "STOP STEALER"
+	runCooldown(stealBtn, "STEAL")
+	wait(30)
+	game.StarterGui:SetCore("SendNotification", {
+		Title = "Success",
+		Text = "Steal complete!",
+		Duration = 3
+	})
+end)
+
+-- BYPASS logic
+bypassBtn.MouseButton1Click:Connect(function()
+	runCooldown(bypassBtn, "BYPASS")
+end)
+
+-- Fade out the loading screen after 2.5 seconds
+task.delay(2.5, function()
+	for i = 0, 1, 0.05 do
+		loadingFrame.BackgroundTransparency = i
+		loadingText.TextTransparency = i
+		wait(0.02)
+	end
+	loadingScreen:Destroy()
+
+	-- Fade in the UI
+	task.spawn(function()
+		for i = 1, 0, -0.05 do
+			mainFrame.BackgroundTransparency = i
+			for _, child in ipairs(mainFrame:GetDescendants()) do
+				if child:IsA("TextLabel") or child:IsA("TextBox") or child:IsA("TextButton") then
+					child.TextTransparency = i
+				end
+				if child:IsA("TextBox") or child:IsA("TextButton") then
+					child.BackgroundTransparency = i
+				end
+			end
+			wait(0.02)
+		end
+	end)
+end)
