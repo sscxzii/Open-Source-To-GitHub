@@ -1,0 +1,215 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+
+-- ScreenGui
+local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.Name = "XXZiiPetDuplicator"
+screenGui.ResetOnSpawn = false
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 400, 0, 200)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -100)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.BackgroundTransparency = 1
+mainFrame.Parent = screenGui
+
+-- Minimized Button (⚡ circle)
+local minimizedBtn = Instance.new("TextButton")
+minimizedBtn.Size = UDim2.new(0, 40, 0, 40)
+minimizedBtn.Position = UDim2.new(0.5, -20, 0.5, -20)
+minimizedBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+minimizedBtn.Text = "⚡"
+minimizedBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+minimizedBtn.TextSize = 20
+minimizedBtn.Font = Enum.Font.GothamBold
+minimizedBtn.Visible = false
+minimizedBtn.Draggable = true
+minimizedBtn.Active = true
+minimizedBtn.Parent = screenGui
+
+local miniCorner = Instance.new("UICorner")
+miniCorner.CornerRadius = UDim.new(1, 0)
+miniCorner.Parent = minimizedBtn
+-- Border
+local border = Instance.new("UIStroke")
+border.Color = Color3.fromRGB(255, 0, 0)
+border.Thickness = 2
+border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+border.Parent = mainFrame
+
+-- Corner
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0, 200, 0, 25)
+title.Position = UDim2.new(0, 10, 0, 5)
+title.BackgroundTransparency = 1
+title.Text = "⚡ XXZii Duplicator"
+title.TextColor3 = Color3.fromRGB(255, 0, 0)
+title.TextSize = 18
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.TextTransparency = 1
+title.Parent = mainFrame
+
+-- Exit Button
+local exitBtn = Instance.new("TextButton")
+exitBtn.Size = UDim2.new(0, 25, 0, 25)
+exitBtn.Position = UDim2.new(1, -30, 0, 5)
+exitBtn.Text = "X"
+exitBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+exitBtn.TextSize = 16
+exitBtn.BackgroundTransparency = 1
+exitBtn.Font = Enum.Font.GothamBold
+exitBtn.TextTransparency = 1
+exitBtn.Parent = mainFrame
+exitBtn.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+-- Minimize Button
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
+minimizeBtn.Position = UDim2.new(1, -60, 0, 5)
+minimizeBtn.Text = "-"
+minimizeBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+minimizeBtn.TextSize = 20
+minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.TextTransparency = 1
+minimizeBtn.Parent = mainFrame
+
+-- Toggle minimize
+minimizeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	minimizedBtn.Visible = true
+end)
+
+-- Restore from minimized
+minimizedBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	minimizedBtn.Visible = false
+end)
+
+-- Equipped Pet Display
+local petInfo = Instance.new("TextLabel")
+petInfo.Size = UDim2.new(0.9, 0, 0, 30)
+petInfo.Position = UDim2.new(0.05, 0, 0.3, 0)
+petInfo.BackgroundTransparency = 1
+petInfo.Text = "🐶 Equipped Pet: [None]"
+petInfo.TextSize = 16
+petInfo.Font = Enum.Font.Gotham
+petInfo.TextColor3 = Color3.fromRGB(255, 255, 255)
+petInfo.TextTransparency = 1
+petInfo.Parent = mainFrame
+
+-- Duplicate Button
+local dupeBtn = Instance.new("TextButton")
+dupeBtn.Size = UDim2.new(0.9, 0, 0, 30)
+dupeBtn.Position = UDim2.new(0.05, 0, 0.55, 0)
+dupeBtn.Text = "🔁 Duplicate Item"
+dupeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+dupeBtn.TextSize = 16
+dupeBtn.Font = Enum.Font.GothamBold
+dupeBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+dupeBtn.BackgroundTransparency = 1
+dupeBtn.TextTransparency = 1
+dupeBtn.Parent = mainFrame
+Instance.new("UICorner", dupeBtn).CornerRadius = UDim.new(0, 6)
+
+-- Progress Bar Background
+local progressBarBg = Instance.new("Frame")
+progressBarBg.Size = UDim2.new(0.9, 0, 0, 10)
+progressBarBg.Position = UDim2.new(0.05, 0, 0.75, 0)
+progressBarBg.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+progressBarBg.BorderSizePixel = 0
+progressBarBg.Visible = false
+progressBarBg.Parent = mainFrame
+Instance.new("UICorner", progressBarBg).CornerRadius = UDim.new(0, 4)
+
+-- Progress Bar Fill
+local progressBar = Instance.new("Frame")
+progressBar.Size = UDim2.new(0, 0, 1, 0)
+progressBar.Position = UDim2.new(0, 0, 0, 0)
+progressBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+progressBar.BorderSizePixel = 0
+progressBar.Parent = progressBarBg
+Instance.new("UICorner", progressBar).CornerRadius = UDim.new(0, 4)
+
+-- Function to get equipped pet
+local function getEquippedPetTool()
+	local character = player.Character or player.CharacterAdded:Wait()
+	for _, tool in ipairs(character:GetChildren()) do
+		if tool:IsA("Tool") and tool:FindFirstChild("Handle") then
+			return tool
+		end
+	end
+	return nil
+end
+
+-- Update equipped pet info
+local function updatePetInfo()
+	local pet = getEquippedPetTool()
+	petInfo.Text = pet and ("🐶 Equipped Pet: " .. pet.Name) or "🐶 Equipped Pet: [None]"
+end
+
+-- Handle duplication with in-UI progress bar
+dupeBtn.MouseButton1Click:Connect(function()
+	local pet = getEquippedPetTool()
+	progressBar.Size = UDim2.new(0, 0, 1, 0)
+	progressBarBg.Visible = true
+	dupeBtn.Visible = false
+
+	local duration = 3
+	local start = tick()
+	while tick() - start < duration do
+		local progress = (tick() - start) / duration
+		progressBar.Size = UDim2.new(progress, 0, 1, 0)
+		task.wait()
+	end
+
+	if pet then
+		local clone = pet:Clone()
+		clone.Parent = player.Backpack
+		dupeBtn.Text = "✅ Duplicated!"
+	else
+		dupeBtn.Text = "❌ No item"
+	end
+
+	progressBarBg.Visible = false
+	dupeBtn.Visible = true
+	task.wait(2)
+	dupeBtn.Text = "🔁 Duplicate Item"
+end)
+
+-- Live update pet info
+task.spawn(function()
+	while true do
+		updatePetInfo()
+		wait(1)
+	end
+end)
+
+-- Fade-in effect
+task.delay(0.5, function()
+	for i = 1, 0, -0.05 do
+		mainFrame.BackgroundTransparency = i
+		for _, child in ipairs(mainFrame:GetDescendants()) do
+			if child:IsA("TextLabel") or child:IsA("TextBox") or child:IsA("TextButton") then
+				child.TextTransparency = i
+			end
+			if child:IsA("TextButton") then
+				child.BackgroundTransparency = i
+			end
+		end
+		wait(0.02)
+	end
+end)
