@@ -1,0 +1,299 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- UI SETUP
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FreezeTradeUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- MAIN FRAME
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 430, 0, 280)
+mainFrame.Position = UDim2.new(0.5, -215, 0.5, -140)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 8)
+
+-- CLOSE BUTTON
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 16
+closeButton.Parent = mainFrame
+Instance.new("UICorner", closeButton).CornerRadius = UDim.new(1, 0)
+closeButton.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
+
+-- TITLE
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 0, 40)
+title.Position = UDim2.new(0, 10, 0, 5)
+title.BackgroundTransparency = 1
+title.Text = "âš¡ Freeze Trade (Early Access p ppl in)"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextColor3 = Color3.fromRGB(255, 46, 46)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = mainFrame
+
+-- SEARCH BOX
+local searchBox = Instance.new("TextBox")
+searchBox.Size = UDim2.new(0.62, 0, 0, 36)
+searchBox.Position = UDim2.new(0.05, 0, 0.22, 0)
+searchBox.PlaceholderText = "Enter Username"
+searchBox.Text = ""
+searchBox.Font = Enum.Font.Gotham
+searchBox.TextSize = 16
+searchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+searchBox.ClearTextOnFocus = false
+searchBox.Parent = mainFrame
+Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 6)
+
+-- SEARCH BUTTON
+local searchBtn = Instance.new("TextButton")
+searchBtn.Size = UDim2.new(0.28, 0, 0, 36)
+searchBtn.Position = UDim2.new(0.67, 0, 0.22, 0)
+searchBtn.Text = "Search"
+searchBtn.Font = Enum.Font.GothamBold
+searchBtn.TextSize = 16
+searchBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+searchBtn.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+searchBtn.Parent = mainFrame
+Instance.new("UICorner", searchBtn).CornerRadius = UDim.new(0, 6)
+
+-- AUTO FORCE BUTTON
+local autoForce = Instance.new("TextButton")
+autoForce.Size = UDim2.new(0.9, 0, 0, 38)
+autoForce.Position = UDim2.new(0.05, 0, 0.45, 0)
+autoForce.Text = "AUTO FORCE TO ACCEPT/CONFIRM"
+autoForce.Font = Enum.Font.GothamBold
+autoForce.TextSize = 16
+autoForce.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoForce.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+autoForce.Parent = mainFrame
+Instance.new("UICorner", autoForce).CornerRadius = UDim.new(0, 6)
+
+-- FREEZE SCREEN BUTTON
+local freezeBtn = Instance.new("TextButton")
+freezeBtn.Size = UDim2.new(0.9, 0, 0, 38)
+freezeBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
+freezeBtn.Text = "FREEZE PLAYER SCREEN"
+freezeBtn.Font = Enum.Font.GothamBold
+freezeBtn.TextSize = 16
+freezeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+freezeBtn.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+freezeBtn.Parent = mainFrame
+Instance.new("UICorner", freezeBtn).CornerRadius = UDim.new(0, 6)
+
+-- FREEZE BUTTON LOADING BAR
+freezeBtn.MouseButton1Click:Connect(function()
+	freezeBtn.Text = "Freezing..."
+	freezeBtn.AutoButtonColor = false
+	freezeBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+
+	local loadingBg = Instance.new("Frame")
+	loadingBg.Size = UDim2.new(0.9, 0, 0, 10)
+	loadingBg.Position = UDim2.new(0.05, 0, 0.85, 0)
+	loadingBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	loadingBg.BorderSizePixel = 0
+	loadingBg.Parent = mainFrame
+	Instance.new("UICorner", loadingBg).CornerRadius = UDim.new(0, 5)
+
+	local fillBar = Instance.new("Frame")
+	fillBar.Size = UDim2.new(0, 0, 1, 0)
+	fillBar.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+	fillBar.BorderSizePixel = 0
+	fillBar.Parent = loadingBg
+	Instance.new("UICorner", fillBar).CornerRadius = UDim.new(0, 5)
+
+	local tweenInfo = TweenInfo.new(10, Enum.EasingStyle.Linear)
+	local tween = TweenService:Create(fillBar, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)})
+	tween:Play()
+
+	tween.Completed:Connect(function()
+		freezeBtn.Text = "Successfully Frozen"
+		freezeBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+		wait(2)
+		freezeBtn.Text = "FREEZE PLAYER SCREEN"
+		freezeBtn.AutoButtonColor = true
+		freezeBtn.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+		loadingBg:Destroy()
+	end)
+end)
+
+-- FOOTER
+local footer = Instance.new("TextLabel")
+footer.Size = UDim2.new(1, 0, 0, 20)
+footer.Position = UDim2.new(0, 0, 1, -20)
+footer.BackgroundTransparency = 1
+footer.Text = "Made by âš¡xxzii âš¡"
+footer.Font = Enum.Font.Gotham
+footer.TextSize = 13
+footer.TextColor3 = Color3.fromRGB(180, 180, 180)
+footer.TextYAlignment = Enum.TextYAlignment.Center
+footer.Parent = mainFrame
+
+-- PROFILE PANEL HOLDER
+local profilePanel = nil
+
+-- SEARCH FUNCTION
+searchBtn.MouseButton1Click:Connect(function()
+	if profilePanel then profilePanel:Destroy() end
+
+	local inputName = searchBox.Text
+	local target = Players:FindFirstChild(inputName)
+
+	profilePanel = Instance.new("Frame")
+	profilePanel.Size = UDim2.new(0, 200, 0, 240)
+	profilePanel.Position = UDim2.new(1, 10, 0.05, 0)
+	profilePanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	profilePanel.Parent = mainFrame
+	Instance.new("UICorner", profilePanel).CornerRadius = UDim.new(0, 10)
+
+	local closeX = Instance.new("TextButton")
+	closeX.Size = UDim2.new(0, 25, 0, 25)
+	closeX.Position = UDim2.new(1, -30, 0, 5)
+	closeX.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+	closeX.Text = "X"
+	closeX.Font = Enum.Font.GothamBold
+	closeX.TextSize = 14
+	closeX.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeX.Parent = profilePanel
+	Instance.new("UICorner", closeX).CornerRadius = UDim.new(1, 0)
+	closeX.MouseButton1Click:Connect(function()
+		profilePanel:Destroy()
+	end)
+
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Size = UDim2.new(1, 0, 0, 40)
+	nameLabel.Position = UDim2.new(0, 0, 0, 0)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Font = Enum.Font.GothamBold
+	nameLabel.TextSize = 18
+	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	nameLabel.Parent = profilePanel
+
+	local profileImage = Instance.new("ImageLabel")
+	profileImage.Size = UDim2.new(0, 100, 0, 100)
+	profileImage.Position = UDim2.new(0.5, -50, 0, 50)
+	profileImage.BackgroundTransparency = 1
+	profileImage.Parent = profilePanel
+
+	local actionBtn = Instance.new("TextButton")
+	actionBtn.Size = UDim2.new(0.8, 0, 0, 36)
+	actionBtn.Position = UDim2.new(0.1, 0, 1, -50)
+	actionBtn.Font = Enum.Font.GothamBold
+	actionBtn.TextSize = 16
+	actionBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	actionBtn.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+	actionBtn.Parent = profilePanel
+	Instance.new("UICorner", actionBtn).CornerRadius = UDim.new(0, 6)
+
+	if target then  
+	nameLabel.Text = target.Name  
+	local userId = target.UserId  
+	local content = Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)  
+	profileImage.Image = content  
+	actionBtn.Text = "ACCEPT TRADE"  
+
+	actionBtn.MouseButton1Click:Connect(function()
+		if actionBtn:FindFirstChild("LoadingBar") then return end
+
+		actionBtn.AutoButtonColor = false
+		actionBtn.Text = "Accepting Trade..."
+
+		local loadingBar = Instance.new("Frame")
+		loadingBar.Name = "LoadingBar"
+		loadingBar.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+		loadingBar.BorderSizePixel = 0
+		loadingBar.Position = UDim2.new(0, 0, 1, -3)
+		loadingBar.Size = UDim2.new(0, 0, 0, 3)
+		loadingBar.AnchorPoint = Vector2.new(0, 0)
+		loadingBar.Parent = actionBtn
+
+		local tween = TweenService:Create(loadingBar, TweenInfo.new(5), {Size = UDim2.new(1, 0, 0, 3)})
+		tween:Play()
+
+		tween.Completed:Connect(function()
+			loadingBar:Destroy()
+			actionBtn.Text = "Success"
+			actionBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+			wait(1.5)
+			actionBtn.Text = "ACCEPT TRADE"
+			actionBtn.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+			actionBtn.AutoButtonColor = true
+		end)
+	end)
+	else
+		nameLabel.Text = "Not Detected"
+		profileImage.Image = ""
+		profileImage.Size = UDim2.new(0, 60, 0, 60)
+		profileImage.Position = UDim2.new(0.5, -30, 0.35, 0)
+
+		local bigX = Instance.new("TextLabel")
+		bigX.Text = "X"
+		bigX.Font = Enum.Font.GothamBlack
+		bigX.TextSize = 60
+		bigX.TextColor3 = Color3.fromRGB(255, 0, 0)
+		bigX.Size = UDim2.new(1, 0, 0, 80)
+		bigX.Position = UDim2.new(0, 0, 0.3, 0)
+		bigX.BackgroundTransparency = 1
+		bigX.TextStrokeTransparency = 0.5
+		bigX.Parent = profilePanel
+
+		actionBtn.Text = "CLOSE UI"
+		actionBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+		actionBtn.MouseButton1Click:Connect(function()
+			profilePanel:Destroy()
+		end)
+	end
+end)
+
+-- AUTO FORCE BUTTON LOADING BAR
+autoForce.MouseButton1Click:Connect(function()
+	autoForce.Text = "Overriding..."
+	autoForce.AutoButtonColor = false
+	autoForce.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+
+	local loadingBg = Instance.new("Frame")
+	loadingBg.Size = UDim2.new(0.9, 0, 0, 10)
+	loadingBg.Position = UDim2.new(0.05, 0, 0.6, 0) -- Positioned under the AUTO FORCE button
+	loadingBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	loadingBg.BorderSizePixel = 0
+	loadingBg.Parent = mainFrame
+	Instance.new("UICorner", loadingBg).CornerRadius = UDim.new(0, 5)
+
+	local fillBar = Instance.new("Frame")
+	fillBar.Size = UDim2.new(0, 0, 1, 0)
+	fillBar.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+	fillBar.BorderSizePixel = 0
+	fillBar.Parent = loadingBg
+	Instance.new("UICorner", fillBar).CornerRadius = UDim.new(0, 5)
+
+	local tweenInfo = TweenInfo.new(10, Enum.EasingStyle.Linear)
+	local tween = TweenService:Create(fillBar, tweenInfo, {Size = UDim2.new(1, 0, 1, 0)})
+	tween:Play()
+
+	tween.Completed:Connect(function()
+		autoForce.Text = "Successfully Overridden"
+		autoForce.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+		wait(2)
+		autoForce.Text = "AUTO FORCE TO ACCEPT/CONFIRM"
+		autoForce.AutoButtonColor = true
+		autoForce.BackgroundColor3 = Color3.fromRGB(255, 46, 46)
+		loadingBg:Destroy()
+	end)
+end)
