@@ -1,0 +1,150 @@
+-- SERVICES
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- SCREEN GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AdminPanelUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- MAIN FRAME (hacker theme)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 260, 0, 320)
+mainFrame.Position = UDim2.new(0.5, -130, 0.5, -160)
+mainFrame.BackgroundColor3 = Color3.fromRGB(10, 20, 10) -- dark greenish black
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
+
+-- TITLE
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundTransparency = 1
+title.Text = "ADMINISTRATION PANEL"
+title.Font = Enum.Font.Code -- gives hacker/terminal look
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(0, 255, 0) -- neon green
+title.TextStrokeTransparency = 0.6
+title.Parent = mainFrame
+
+-- PROFILE IMAGE
+local profileImage = Instance.new("ImageLabel")
+profileImage.Size = UDim2.new(0, 70, 0, 70)
+profileImage.Position = UDim2.new(0.5, -35, 0, 40)
+profileImage.BackgroundTransparency = 1
+profileImage.Image = "rbxassetid://0" -- placeholder
+profileImage.Parent = mainFrame
+Instance.new("UICorner", profileImage).CornerRadius = UDim.new(1, 0)
+
+-- USERNAME LABEL
+local usernameLabel = Instance.new("TextLabel")
+usernameLabel.Size = UDim2.new(1, 0, 0, 25)
+usernameLabel.Position = UDim2.new(0, 0, 0, 120)
+usernameLabel.BackgroundTransparency = 1
+usernameLabel.Text = "No User"
+usernameLabel.Font = Enum.Font.Code
+usernameLabel.TextSize = 16
+usernameLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+usernameLabel.Parent = mainFrame
+
+-- SEARCH BOX
+local searchBox = Instance.new("TextBox")
+searchBox.Size = UDim2.new(0.55, 0, 0, 28)
+searchBox.Position = UDim2.new(0.05, 0, 0, 160)
+searchBox.PlaceholderText = "Insert User"
+searchBox.Text = ""
+searchBox.Font = Enum.Font.Code
+searchBox.TextSize = 14
+searchBox.TextColor3 = Color3.fromRGB(0, 255, 0)
+searchBox.BackgroundColor3 = Color3.fromRGB(15, 40, 15)
+searchBox.ClearTextOnFocus = false
+searchBox.Parent = mainFrame
+Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 6)
+
+-- SEARCH BUTTON
+local searchBtn = Instance.new("TextButton")
+searchBtn.Size = UDim2.new(0.35, 0, 0, 28)
+searchBtn.Position = UDim2.new(0.6, 0, 0, 160)
+searchBtn.Text = "Search"
+searchBtn.Font = Enum.Font.Code
+searchBtn.TextSize = 14
+searchBtn.TextColor3 = Color3.fromRGB(0, 255, 0)
+searchBtn.BackgroundColor3 = Color3.fromRGB(20, 60, 20)
+searchBtn.Parent = mainFrame
+Instance.new("UICorner", searchBtn).CornerRadius = UDim.new(0, 6)
+
+-- BUTTON MAKER FUNCTION (hacker style + loading)
+local function createButton(text, yPos)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.9, 0, 0, 30)
+    btn.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn.Text = text
+    btn.Font = Enum.Font.Code
+    btn.TextSize = 14
+    btn.TextColor3 = Color3.fromRGB(0, 255, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(15, 40, 15)
+    btn.Parent = mainFrame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    -- Add loading behavior
+    btn.MouseButton1Click:Connect(function()
+        if btn:FindFirstChild("LoadingBar") then return end -- prevent spam
+
+        -- Freeze button text temporarily
+        local oldText = btn.Text
+        btn.Text = "Processing..."
+
+        -- Loading bar frame
+        local loading = Instance.new("Frame")
+        loading.Name = "LoadingBar"
+        loading.Size = UDim2.new(0, 0, 0, 3)
+        loading.Position = UDim2.new(0, 0, 1, -3)
+        loading.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        loading.BorderSizePixel = 0
+        loading.Parent = btn
+
+        -- Animate fill
+        local TweenService = game:GetService("TweenService")
+        local tween = TweenService:Create(loading, TweenInfo.new(3, Enum.EasingStyle.Linear), {
+            Size = UDim2.new(1, 0, 0, 3)
+        })
+        tween:Play()
+
+        tween.Completed:Connect(function()
+            loading:Destroy()
+            btn.Text = "✔ " .. oldText
+            task.wait(1.5)
+            btn.Text = oldText
+        end)
+    end)
+
+    return btn
+end
+
+-- ADMIN BUTTONS
+local freezeBtn = createButton("FREEZE TRADE", 200)
+local forceBtn = createButton("FORCE TRADE PETS", 240)
+local acceptBtn = createButton("AUTO ACCEPT", 280)
+
+-- SEARCH FUNCTION
+searchBtn.MouseButton1Click:Connect(function()
+	local inputName = searchBox.Text
+	local target = Players:FindFirstChild(inputName)
+
+	if target then
+		usernameLabel.Text = target.Name
+		local thumb, isReady = Players:GetUserThumbnailAsync(
+			target.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100
+		)
+		if isReady then
+			profileImage.Image = thumb
+		end
+	else
+		usernameLabel.Text = "Not Found"
+		profileImage.Image = "rbxassetid://0"
+	end
+end)
